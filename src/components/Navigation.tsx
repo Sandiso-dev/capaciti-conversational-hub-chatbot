@@ -14,8 +14,12 @@ const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-8">
-          <Link to="/" className="text-2xl font-clash-display font-bold text-foreground">
-            CAPACITI
+          <Link to="/" className="flex items-center">
+            <img
+              src="/lovable-uploads/309ac98f-164e-4e65-8983-e1ce1cdac3d9.png"
+              alt="CAPACITI Logo"
+              className="h-8"
+            />
           </Link>
         </div>
         <div className="flex items-center space-x-4">
