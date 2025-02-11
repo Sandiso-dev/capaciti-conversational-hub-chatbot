@@ -38,7 +38,7 @@ serve(async (req) => {
       : '';
 
     // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
@@ -58,7 +58,19 @@ serve(async (req) => {
       }),
     });
 
-    const data = await response.json();
+    if (!openAIResponse.ok) {
+      const errorData = await openAIResponse.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await openAIResponse.json();
+    
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      console.error('Unexpected OpenAI response format:', data);
+      throw new Error('Invalid response format from OpenAI');
+    }
+
     const aiResponse = data.choices[0].message.content;
 
     // Store chat history if user is authenticated
