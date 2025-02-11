@@ -39,7 +39,6 @@ serve(async (req) => {
 
     console.log('Making request to OpenAI API...');
     
-    // Call OpenAI API with updated model
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,7 +46,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Updated to use the gpt-4o-mini model
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
