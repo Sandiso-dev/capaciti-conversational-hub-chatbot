@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { Session } from "@supabase/supabase-js";
 
 interface Message {
   id?: string;
@@ -30,7 +31,7 @@ const ChatWidget = () => {
 
     // Load chat history if user is authenticated
     const loadChatHistory = async () => {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
         const { data: history } = await supabase
           .from('chat_history')
