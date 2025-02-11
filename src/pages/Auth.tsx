@@ -18,6 +18,14 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Function to set admin details
+  const setAdminDetails = () => {
+    setEmail("sandisodev@gmail.com");
+    setPassword("sandiso211106");
+    setUsername("sandiso");
+    setFullName("Sandiso Njadu");
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -126,7 +134,7 @@ const Auth = () => {
           </Button>
         </form>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <Button
             variant="link"
             onClick={() => setIsSignUp(!isSignUp)}
@@ -136,6 +144,15 @@ const Auth = () => {
               ? "Already have an account? Sign in"
               : "Don't have an account? Sign up"}
           </Button>
+          {!isSignUp && (
+            <Button
+              variant="ghost"
+              onClick={setAdminDetails}
+              className="w-full text-sm"
+            >
+              Use Admin Account
+            </Button>
+          )}
         </div>
       </Card>
     </div>

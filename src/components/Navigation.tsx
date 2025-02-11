@@ -6,19 +6,58 @@ import { useTheme } from "next-themes";
 import { Toggle } from "@/components/ui/toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect, useState } from "react";
 
 const Navigation = () => {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
-  // This is a placeholder. In a real app, you'd check if the user is an admin
-  const isAdmin = true;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      checkAdminStatus(session?.user?.id);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      checkAdminStatus(session?.user?.id);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkAdminStatus = async (userId: string | undefined) => {
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+      setIsAdmin(profile?.username === 'sandiso');
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate("/auth");
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Error signing out",
@@ -66,14 +105,28 @@ const Navigation = () => {
               </Link>
             </Button>
           )}
-          <Button
-            variant="ghost"
-            className="font-medium hover:bg-muted transition-colors duration-200"
-            onClick={handleSignOut}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+
+          {isAuthenticated ? (
+            <Button
+              variant="ghost"
+              className="font-medium hover:bg-muted transition-colors duration-200"
+              onClick={handleSignOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              className="font-medium hover:bg-muted transition-colors duration-200"
+              asChild
+            >
+              <Link to="/auth">
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </nav>
