@@ -37,7 +37,9 @@ serve(async (req) => {
       ? relevantContent.map(item => item.content).join('\n')
       : '';
 
-    // Call OpenAI API
+    console.log('Making request to OpenAI API...');
+    
+    // Call OpenAI API with updated model
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -45,7 +47,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o-mini', // Updated to use the gpt-4o-mini model
         messages: [
           {
             role: 'system',
@@ -65,6 +67,7 @@ serve(async (req) => {
     }
 
     const data = await openAIResponse.json();
+    console.log('OpenAI API response received:', data);
     
     if (!data.choices || !data.choices[0]?.message?.content) {
       console.error('Unexpected OpenAI response format:', data);
