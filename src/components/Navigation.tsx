@@ -1,14 +1,32 @@
 
 import { Button } from "@/components/ui/button";
-import { LogIn, LayoutDashboard, Sun, Moon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogIn, LogOut, LayoutDashboard, Sun, Moon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Toggle } from "@/components/ui/toggle";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navigation = () => {
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   // This is a placeholder. In a real app, you'd check if the user is an admin
   const isAdmin = true;
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/auth");
+    } catch (error: any) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
@@ -51,9 +69,10 @@ const Navigation = () => {
           <Button
             variant="ghost"
             className="font-medium hover:bg-muted transition-colors duration-200"
+            onClick={handleSignOut}
           >
-            <LogIn className="mr-2 h-4 w-4" />
-            Login
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
           </Button>
         </div>
       </div>
