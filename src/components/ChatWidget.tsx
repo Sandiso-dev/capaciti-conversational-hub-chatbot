@@ -5,7 +5,6 @@ import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Session } from "@supabase/supabase-js";
 
 interface Message {
   id?: string;
@@ -25,19 +24,26 @@ const ChatWidget = () => {
 
   useEffect(() => {
     // Check if user is authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUserId(session?.user?.id || null);
-    });
+    };
+    checkAuth();
 
     // Load chat history if user is authenticated
     const loadChatHistory = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
-        const { data: history } = await supabase
+        const { data: history, error } = await supabase
           .from('chat_history')
           .select('*')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: true });
+        
+        if (error) {
+          console.error('Error loading chat history:', error);
+          return;
+        }
         
         if (history) {
           setMessages(history.map(msg => ({
@@ -51,6 +57,15 @@ const ChatWidget = () => {
     };
 
     loadChatHistory();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -67,11 +82,12 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     // Add user message to chat
-    setMessages(prev => [...prev, {
+    const newUserMessage: Message = {
       content: userMessage,
       isBot: false,
       timestamp: new Date()
-    }]);
+    };
+    setMessages(prev => [...prev, newUserMessage]);
 
     try {
       const response = await supabase.functions.invoke('chat', {
@@ -81,11 +97,22 @@ const ChatWidget = () => {
       if (response.error) throw new Error(response.error.message);
 
       // Add bot response to chat
-      setMessages(prev => [...prev, {
+      const botMessage: Message = {
         content: response.data.response,
         isBot: true,
         timestamp: new Date()
-      }]);
+      };
+      setMessages(prev => [...prev, botMessage]);
+
+      // Store messages in chat_history if user is authenticated
+      if (userId) {
+        await Promise.all([
+          supabase.from('chat_history').insert([
+            { user_id: userId, message: userMessage, is_bot: false },
+            { user_id: userId, message: response.data.response, is_bot: true }
+          ])
+        ]);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast({
