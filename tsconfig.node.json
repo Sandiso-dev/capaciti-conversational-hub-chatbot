@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["ES2023"],
+    "module": "esnext", // Updated to esnext
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "node", // Updated to node
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": false,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "composite": true
+  },
+  "include": ["vite.config.ts"]
+}
